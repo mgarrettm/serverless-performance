@@ -1,4 +1,4 @@
-service: onlunqdzbchz
+service: your-service-name
 provider:
     name: azure
     location: 'East US'

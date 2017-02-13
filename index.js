@@ -7,36 +7,36 @@ const request = require('request');
 
 const providers = require('./providers');
 
-module.exports = function(provider, executionTime, requestTimes, iterations, concurrency, resultsFile) {
+module.exports = function(config) {
   let results = [["times"]];
 
-  for (let i = 0; i < requestTimes.length; i++) {
+  for (let i = 0; i < config.test.timings.length; i++) {
     results[0][i + 1] = i + 1;
-    results[i + 1] = [requestTimes[i]];
+    results[i + 1] = [config.test.timings[i]];
   }
 
-  let remainingIterations = iterations;
+  let remainingIterations = config.test.iterations;
 
-  providers.prepareConcurrency(provider, concurrency, () => {
+  providers.prepareConcurrency(config, () => {
     let executeRound = (currentRound) => {
-      providers.deploy(provider, concurrency, (uris) => {
+      providers.deploy(config, (uris) => {
         if (uris.length > remainingIterations) {
-          uris = uris.slice(0, remaining);
+          uris = uris.slice(0, remainingIterations);
         }
 
         let remainingInRound = uris.length;
 
         for (let i = 0; i < uris.length; i++) {
-          let remainingInIteration = requestTimes.length;
+          let remainingInIteration = config.test.timings.length;
 
-          let delay = 3 * requestTimes.length * concurrency;
+          let delay = 3 * config.test.timings.length * config.test.concurrency;
           let start = Date.now() + delay;
 
-          for (let n = 0; n < requestTimes.length; n++) {
+          for (let n = 0; n < config.test.timings.length; n++) {
             setTimeout(
               (currentIteration) => request.post({
                 url: uris[i],
-                body: JSON.stringify({ duration: executionTime }),
+                body: JSON.stringify({ duration: config.function.duration }),
                 time: true
               }, (err, res, body) => {
                 if (err) throw err;
@@ -44,26 +44,24 @@ module.exports = function(provider, executionTime, requestTimes, iterations, con
                   throw new Error('Unexpected response. Status code: ' + res.statusCode + '. Body: ' + body);
                 }
 
-                console.log(res.elapsedTime + 'ms');
-                results[n + 1][currentRound * concurrency + currentIteration + 1] = {
-                  responseTime: res.elapsedTime,
-                  functionDuration: JSON.parse(body).duration
-                };
+                let overhead = res.elapsedTime - JSON.parse(body).duration;
+                console.log(overhead + 'ms');
+                results[n + 1][currentIteration + 1] = overhead;
 
                 if (--remainingInIteration == 0) {
                   if (--remainingIterations == 0) {
                     stringify(results, (err, output) => {
                       if (err) throw err;
-                      fs.writeFile(resultsFile, output);
-                      providers.cleanupDeployment(provider);
+                      fs.writeFile(config.resultsFile, output);
+                      providers.cleanupDeployment(config);
                     });
                   } else if (--remainingInRound == 0) {
                     executeRound(currentRound + 1);
                   }
                 }
               }),
-              start + requestTimes[n] - Date.now(),
-              i
+              start + config.test.timings[n] - Date.now(),
+              currentRound * config.test.concurrency + i
             );
           }
         }

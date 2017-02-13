@@ -1,7 +1,10 @@
+// TODO: have you ever heard of classes? or promises?
+
 'use strict';
 
 const exec = require('child_process').exec;
 const fs = require('fs');
+const path = require('path');
 
 const urlRegex = require('url-regex');
 const YAML = require('yamljs');
@@ -9,34 +12,32 @@ const YAML = require('yamljs');
 let service = '';
 
 module.exports = {
-  prepareConcurrency: (provider, concurrency, callback) => {
+  prepareConcurrency: (config, callback) => {
     let functions = {};
 
-    for (var i = 0; i < concurrency; i++) {
-      functions['test' + i] = generateFunction(provider, i);
+    for (var i = 0; i < config.test.concurrency; i++) {
+      functions['test' + i] = generateFunction(config, i);
     }
 
-    YAML.load('providers/' + provider + '/serverless.yml', configuration => {
-      configuration.functions = functions;
+    let ymlPath = path.join(__dirname, config.provider.name, 'serverless.yml');
+    
+    YAML.load(ymlPath, yml => {
+      yml.functions = functions;
+      yml = prepareYAML(config, yml);
 
-      if (provider == 'microsoft') {
-        service = generateResourceGroup();
-        configuration.service = service;
-      }
+      let ymlString = YAML.stringify(yml, null, 4);
 
-      let configurationString = YAML.stringify(configuration, null, 4);
-
-      fs.writeFile('providers/' + provider + '/serverless.yml', configurationString, err => {
+      fs.writeFile(ymlPath, ymlString, err => {
         if (err) throw err;
-        
         callback();
-      })
+      });
     });
   },
-  deploy: (provider, concurrency, callback) => {
-    console.log('Beginning deployment to ' + provider);
+  deploy: (config, callback) => {
+    console.log('Beginning deployment to ' + config.provider.name);
 
-    let child = exec('cd providers/' + provider + '&& serverless remove & serverless deploy');
+    let deploymentPath = path.join(__dirname, config.provider.name);
+    let child = exec('cd ' + deploymentPath + '&& serverless remove & serverless deploy');
 
     let stdout = '';
     child.stdout.on('data', data => {
@@ -51,17 +52,18 @@ module.exports = {
         throw new Error('Provider deployment exited with failure code: ' + code);
       }
 
-      let uris = extractUris(provider, concurrency, stdout.match(urlRegex()));
+      let uris = extractUris(config, stdout.match(urlRegex()));
 
-      console.log('Finished deployment to ' + provider);
+      console.log('Finished deployment to ' + config.provider.name);
 
       callback(uris);
     });
   },
-  cleanupDeployment: (provider) => {
-    console.log('Beginning ' + provider + ' deployment cleanup');
+  cleanupDeployment: (config) => {
+    console.log('Beginning ' + config.provider.name + ' deployment cleanup');
 
-    let child = exec('cd providers/' + provider + '&& serverless remove');
+    let deploymentPath = path.join(__dirname, config.provider.name);
+    let child = exec('cd ' + deploymentPath + '&& serverless remove');
 
     child.stdout.on('data', data => process.stdout.write(data));
 
@@ -72,25 +74,26 @@ module.exports = {
         throw new Error('Provider deployment cleanup exited with failure code: ' + code);
       }
 
-      console.log('Finished ' + provider + ' deployment cleanup');
+      console.log('Finished ' + config.provider.name + ' deployment cleanup');
     });
   }
 };
 
-function generateResourceGroup()
-{
-    let text = "";
-    let possible = "abcdefghijklmnopqrstuvwxyz";
-
-    for(let i = 0; i < 12; i++) {
-        text += possible.charAt(Math.floor(Math.random() * possible.length));
-    }
-
-    return text;
+function prepareYAML(config, yml) {
+  switch(config.provider.name) {
+    case 'alphabet':
+      yml.provider.project = config.provider.project;
+      yml.provider.credentials = config.provider.credentials || '~/.gcloud/keyfile.json';
+      break;
+    case 'microsoft':
+      yml.service = config.provider.service;
+      break;
+  }
+  return yml;
 }
 
-function generateFunction(provider, index) {
-  switch(provider) {
+function generateFunction(config, index) {
+  switch(config.provider.name) {
     case 'alphabet':
       return {
         handler: 'test',
@@ -131,19 +134,19 @@ function generateFunction(provider, index) {
   }
 }
 
-function extractUris(provider, concurrency, uris) {
+function extractUris(config, uris) {
   let uri = '';
-  switch (provider) {
+  switch (config.provider.name) {
     case 'ibm':
       uri = uris[0];
-      for (let i = 0; i < concurrency; i++) {
+      for (let i = 0; i < config.test.concurrency; i++) {
         uris[i] = uri + '/test' + i;
       }
       return uris;
     case 'microsoft':
       uris = [];
-      uri = 'http://' + service + '.azurewebsites.net/api';
-      for (let i = 0; i < concurrency; i++) {
+      uri = 'http://' + config.provider.service + '.azurewebsites.net/api';
+      for (let i = 0; i < config.test.concurrency; i++) {
         uris[i] = uri + '/test' + i;
       }
       return uris;
