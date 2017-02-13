@@ -1,0 +1,25 @@
+{
+  "name": "serverless-performance",
+  "version": "0.0.1",
+  "description": "Measure performance metrics of various serverless computing platforms using the Serverless Framework as a deployment engine.",
+  "main": "index.js",
+  "scripts": {
+    "postinstall": "node scripts/setup.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "serverless",
+    "performance"
+  ],
+  "author": "Garrett McGrath",
+  "license": "MIT",
+  "dependencies": {
+    "csv-stringify": "^1.0.4",
+    "request": "^2.79.0",
+    "serverless-azure-functions": "git+https://github.com/serverless/serverless-azure-functions.git#84eda6846564982185dcb8411469faca49b6fb7a",
+    "serverless-google-cloudfunctions": "git+https://github.com/serverless/serverless-google-cloudfunctions.git#1100f3439ce478f370366c65d73236e2a5b47cc0",
+    "serverless-openwhisk": "^0.4.4",
+    "url-regex": "^4.0.0",
+    "yamljs": "^0.2.8"
+  }
+}
