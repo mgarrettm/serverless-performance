@@ -40,26 +40,32 @@ module.exports = {
     console.log('Beginning deployment to ' + config.provider.name);
 
     let deploymentPath = path.join(__dirname, config.provider.name);
-    let child = exec('cd ' + deploymentPath + '&& node ' + serverlessPath + ' remove & node ' + serverlessPath + ' deploy');
+    let remove = exec('cd ' + deploymentPath + '&& node ' + serverlessPath + ' remove');
 
-    let stdout = '';
-    child.stdout.on('data', data => {
-      stdout += data;
-      process.stdout.write(data);
-    });
+    remove.stdout.on('data', data => process.stdout.write(data));
 
-    child.stderr.on('data', data => process.stderr.write(data));
+    remove.on('close', code => {
+      let deploy = exec('cd ' + deploymentPath + '&& node ' + serverlessPath + ' deploy');
 
-    child.on('close', code => {
-      if (code != 0) {
-        throw new Error('Provider deployment exited with failure code: ' + code);
-      }
+      let stdout = '';
+      deploy.stdout.on('data', data => {
+        stdout += data;
+        process.stdout.write(data);
+      });
 
-      let uris = extractUris(config, stdout.match(urlRegex()));
+      deploy.stderr.on('data', data => process.stderr.write(data));
 
-      console.log('Finished deployment to ' + config.provider.name);
+      deploy.on('close', code => {
+        if (code != 0) {
+          throw new Error('Provider deployment exited with failure code: ' + code);
+        }
 
-      callback(uris);
+        let uris = extractUris(config, stdout.match(urlRegex()));
+
+        console.log('Finished deployment to ' + config.provider.name);
+
+        callback(uris);
+      });
     });
   },
   cleanupDeployment: (config) => {
@@ -141,17 +147,10 @@ function generateFunction(config, index) {
 }
 
 function extractUris(config, uris) {
-  let uri = '';
   switch (config.provider.name) {
-    case 'ibm':
-      uri = uris[0];
-      for (let i = 0; i < config.test.concurrency; i++) {
-        uris[i] = uri + '/test' + i;
-      }
-      return uris;
     case 'microsoft':
       uris = [];
-      uri = 'http://' + config.provider.service + '.azurewebsites.net/api';
+      let uri = 'http://' + config.provider.service + '.azurewebsites.net/api';
       for (let i = 0; i < config.test.concurrency; i++) {
         uris[i] = uri + '/test' + i;
       }
