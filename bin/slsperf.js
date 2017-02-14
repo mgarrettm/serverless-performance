@@ -15,7 +15,7 @@ let config = {
 };
 
 program
-  .version('0.0.8')
+  .version('0.0.9')
   .usage('[options] <resultsFile>')
   .option(
     '-p, --provider <name>',
