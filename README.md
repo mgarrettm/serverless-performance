@@ -2,17 +2,11 @@
 
 This package allows you to measure performance characteristics of serverless platforms such as AWS Lambda, Azure Functions, IBM OpenWhisk, and Google Cloud Functions.
 
+The <a href='http://www.serverless.com'>Serverless Framework</a> is used as the deployment engine for this package.
+
 Note: this project is not complete by any means, and support for some platforms is taken from active pull requests, proceed cautiously. If you encounter issues, please report them and they will be fixed promptly.
 
 ## Getting Started
-
-### Install Serverless
-
-The <a href='http://www.serverless.com'>Serverless Framework</a> is used as the deployment engine for this package. To install:
-
-```bash
-npm install -g serverless
-```
 
 ### Install Package
 
