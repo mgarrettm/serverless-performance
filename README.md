@@ -33,7 +33,7 @@ You must configure credentials before using any of the supported platforms:
 
 ### Command Line Interface
 
-A command line tool for this package is available at `bin/slsperf.js':
+A command line tool for this package is available at `bin/slsperf.js`:
 
 ```
 Usage: slsperf [options] <resultsFile>
