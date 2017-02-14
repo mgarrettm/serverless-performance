@@ -1,7 +1,7 @@
 {
   "name": "serverless-performance",
   "version": "0.0.4",
-  "description": "Measure performance metrics of various serverless computing platforms using the Serverless Framework as a deployment engine.",
+  "description": "This package allows you to measure performance characteristics of serverless platforms such as AWS Lambda, Azure Functions, IBM OpenWhisk, and Google Cloud Functions.",
   "main": "index.js",
   "dependencies": {
     "csv-stringify": "^1.0.4",
