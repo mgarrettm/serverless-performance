@@ -1,10 +1,6 @@
 service: your-service-name
 provider:
     name: azure
-    subscriptionId: azureSubId
-    servicePrincipalTenantId: azureServicePrincipalTenantId
-    servicePrincipalClientId: azureServicePrincipalClientId
-    servicePrincipalPassword: azureServicePrincipalPassword
     location: 'East US'
 plugins:
     - serverless-azure-functions

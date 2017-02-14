@@ -7,7 +7,7 @@
     "csv-stringify": "^1.0.4",
     "request": "^2.79.0",
     "serverless": "^1.6.1",
-    "serverless-azure-functions": "git+https://github.com/serverless/serverless-azure-functions.git#707855008fc688c954a2bf6dfc244b3296a66086",
+    "serverless-azure-functions": "git+https://github.com/serverless/serverless-azure-functions.git#7b93a86475d2570740bd1355a2c417e98fbe04ba",
     "serverless-google-cloudfunctions": "git+https://github.com/mgarrettm/serverless-google-cloudfunctions",
     "serverless-openwhisk": "^0.4.4",
     "url-regex": "^4.0.0",
