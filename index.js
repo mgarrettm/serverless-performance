@@ -49,6 +49,8 @@ module.exports = function(config) {
                 results[n + 1][currentIteration + 1] = overhead;
 
                 if (--remainingInIteration == 0) {
+                  console.log('Finished iteration ' + currentIteration);
+
                   if (--remainingIterations == 0) {
                     stringify(results, (err, output) => {
                       if (err) throw err;
