@@ -10,7 +10,7 @@ const path = require('path');
 const urlRegex = require('url-regex');
 const YAML = require('yamljs');
 
-const serverlessPath = path.join(__dirname, '../node_modules/serverless/bin/serverless');
+const serverlessPath = path.join(require.resolve('serverless'), 'bin/serverless');
 
 let service = '';
 
