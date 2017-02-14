@@ -7,4 +7,3 @@ provider:
     memorySize: 512
 functions:
     test0: {handler: handler.test, events: [{http: {path: /, method: post, private: false}}]}
-    test1: {handler: handler.test, events: [{http: {path: /, method: post, private: false}}]}

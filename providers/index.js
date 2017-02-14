@@ -1,4 +1,5 @@
 // TODO: have you ever heard of classes? or promises?
+// TODO: better way to call serverless binary?
 
 'use strict';
 
@@ -8,6 +9,8 @@ const path = require('path');
 
 const urlRegex = require('url-regex');
 const YAML = require('yamljs');
+
+const serverlessPath = path.join(__dirname, '../node_modules/serverless/bin/serverless');
 
 let service = '';
 
@@ -37,7 +40,7 @@ module.exports = {
     console.log('Beginning deployment to ' + config.provider.name);
 
     let deploymentPath = path.join(__dirname, config.provider.name);
-    let child = exec('cd ' + deploymentPath + '&& serverless remove & serverless deploy');
+    let child = exec('cd ' + deploymentPath + '&& node ' + serverlessPath + ' remove & node ' + serverlessPath + ' deploy');
 
     let stdout = '';
     child.stdout.on('data', data => {
@@ -63,7 +66,7 @@ module.exports = {
     console.log('Beginning ' + config.provider.name + ' deployment cleanup');
 
     let deploymentPath = path.join(__dirname, config.provider.name);
-    let child = exec('cd ' + deploymentPath + '&& serverless remove');
+    let child = exec('cd ' + deploymentPath + '&& node ' + serverlessPath + ' remove');
 
     child.stdout.on('data', data => process.stdout.write(data));
 
@@ -82,10 +85,13 @@ module.exports = {
 function prepareYAML(config, yml) {
   switch(config.provider.name) {
     case 'alphabet':
+      config.provider.project = config.provider.project || generateRandomLetters(12);
       yml.provider.project = config.provider.project;
-      yml.provider.credentials = config.provider.credentials || '~/.gcloud/keyfile.json';
+      config.provider.credentials = config.provider.credentials || '~/.gcloud/keyfile.json';
+      yml.provider.credentials = config.provider.credentials;
       break;
     case 'microsoft':
+      config.provider.service = config.provider.service || generateRandomLetters(12);
       yml.service = config.provider.service;
       break;
   }
@@ -153,4 +159,14 @@ function extractUris(config, uris) {
     default:
       return uris;
   }
+}
+
+function generateRandomLetters(length)
+{
+    let possibilities = "abcdefghijklmnopqrstuvwxyz";
+    let text = "";
+    for(let i = 0; i < length; i++) {
+        text += possibilities.charAt(Math.floor(Math.random() * possibilities.length));
+    }
+    return text;
 }

@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+// TODO: this script sucks; usage on empty, actual validation, ect.
+
 const path = require('path');
 
 const program = require('commander');
@@ -13,12 +15,24 @@ let config = {
 };
 
 program
-  .version('0.0.5')
+  .version('0.0.6')
   .usage('[options] <resultsFile>')
   .option(
     '-p, --provider <name>',
     'Serverless platform to target (amazon, ibm, microsoft, google)',
     name => config.provider.name = name)
+  .option(
+    '--project <name>',
+    'Name of the project to deploy Google Cloud Functions to',
+    name => config.provider.project = name)
+  .option(
+    '--credentials <path>',
+    'Path of the file holding Google Cloud credentials',
+    path => config.provider.credentials = path)
+  .option(
+    '--service <name>',
+    'Name of the App Service project to deploy Azure Functions to',
+    name => config.provider.service = name)
   .option(
     '-d, --duration <ms>',
     'Number of milliseconds the function should execute before returning',
@@ -29,26 +43,22 @@ program
     list => {
       stages = parseStages(list, 'duration', 'rate');
       config.test.timings = generateRateTimings(stages);
-    }
-  )
+    })
   .option(
     '-b, --backoff <list>',
     'Describes the stages of the test; comma separated list of \'n@s\' pairs, where n is the number of times to backoff, and s is the additional step time to wait between requests; backoff and rate options are mutually exclusive',
     list => {
       stages = parseStages(list, 'number', 'step');
       config.test.timings = generateBackoffTimings(stages);
-    }
-  )
+    })
   .option(
     '-i, --iterations <n>',
     'Number of times to run the test',
-    n => config.test.iterations = parseInt(n)
-  )
+    n => config.test.iterations = parseInt(n))
   .option(
     '-c, --concurrency <n>',
     'Number of test iterations to run at a time',
-    n => config.test.concurrency = parseInt(n)
-  )
+    n => config.test.concurrency = parseInt(n))
   .parse(process.argv);
 
 if (program.args.length > 0) {

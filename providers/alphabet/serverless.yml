@@ -10,4 +10,3 @@ package:
     exclude: ['node_modules/**', .gitignore, package.json, '.git/**']
 functions:
     test0: {handler: test, availableMemoryMb: 512, events: [{http: true}]}
-    test1: {handler: test, availableMemoryMb: 512, events: [{http: true}]}

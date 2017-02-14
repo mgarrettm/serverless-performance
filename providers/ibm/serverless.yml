@@ -3,6 +3,5 @@ provider:
     name: openwhisk
 functions:
     test0: {handler: handler.test, memory: 512, events: [{http: 'POST test0'}]}
-    test1: {handler: handler.test, memory: 512, events: [{http: 'POST test1'}]}
 plugins:
     - serverless-openwhisk

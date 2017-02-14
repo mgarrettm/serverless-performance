@@ -8,7 +8,7 @@ Note: this project is not complete by any means, and support for some platforms 
 
 ### Install Serverless
 
-The <a href='www.serverless.com'>Serverless Framework</a> is used as the deployment engine for this package. To install:
+The <a href='http://www.serverless.com'>Serverless Framework</a> is used as the deployment engine for this package. To install:
 
 ```bash
 npm install -g serverless
