@@ -35,7 +35,7 @@ You must configure credentials before using any of the supported platforms:
 
 A command line tool for this package is available at `bin/slsperf.js':
 
-```bash
+```
 Usage: slsperf [options] <resultsFile>
 
 Options:
