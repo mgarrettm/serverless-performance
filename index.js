@@ -55,7 +55,7 @@ module.exports = function(config) {
                 output.results[currentIteration][n] = {
                   executionOverhead: overhead,
                   intendedRequestStart: config.test.timings[n],
-                  requestStart: res.startTime,
+                  requestStart: res.request.startTime - start,
                   requestDuration: res.elapsedTime,
                   functionDuration: parsedBody.duration,
                   instanceId: parsedBody.id
