@@ -9,7 +9,8 @@ module.exports.test = (event, context, callback) => {
     id = uuid();
   }
 
-  while (Date.now() < start + event.duration) {}
+  let duration = JSON.parse(event.body).duration;
+  while (Date.now() < start + duration) {}
 
   callback(null, {
     statusCode: 200,
