@@ -11,8 +11,11 @@ module.exports = function(config) {
   let results = [["times"]];
 
   for (let i = 0; i < config.test.timings.length; i++) {
-    results[0][i + 1] = i + 1;
     results[i + 1] = [config.test.timings[i]];
+  }
+
+  for (let i = 0; i < config.test.iterations; i++) {
+    results[0][i + 1] = i;
   }
 
   let remainingIterations = config.test.iterations;
