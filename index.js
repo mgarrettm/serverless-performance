@@ -4,6 +4,7 @@ const fs = require('fs');
 
 const stringify = require('csv-stringify');
 const request = require('request');
+const uuidV1 = require('uuid/v1');
 
 const providers = require('./providers');
 
@@ -37,9 +38,12 @@ module.exports = function(config) {
 
           for (let n = 0; n < config.test.timings.length; n++) {
             setTimeout(
-              (currentIteration) => request.post({
+              (currentIteration, currentIterationId) => request.post({
                 url: uris[i],
-                body: JSON.stringify({ duration: config.function.duration }),
+                body: JSON.stringify({
+                  duration: config.function.duration,
+                  id: currentIterationId
+                }),
                 time: true
               }, (err, res, body) => {
                 if (err) throw err;
@@ -47,7 +51,12 @@ module.exports = function(config) {
                   throw new Error('Unexpected response. Status code: ' + res.statusCode + '. Body: ' + body);
                 }
 
-                let overhead = res.elapsedTime - JSON.parse(body).duration;
+                let parsedBody = JSON.parse(body);
+                if (parsedBody.id !== currentIterationId) {
+                  throw new Error('Function id mismatch in ' + currentIterationId + ': ' + parsedBody.id);
+                }
+
+                let overhead = res.elapsedTime - parsedBody.duration;
                 console.log(overhead + 'ms');
                 results[n + 1][currentIteration + 1] = overhead;
 
@@ -66,7 +75,8 @@ module.exports = function(config) {
                 }
               }),
               start + config.test.timings[n] - Date.now(),
-              currentRound * config.test.concurrency + i
+              currentRound * config.test.concurrency + i,
+              uuidV1()
             );
           }
         }

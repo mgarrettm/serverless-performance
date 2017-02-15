@@ -11,6 +11,7 @@
     "serverless-google-cloudfunctions": "git+https://github.com/mgarrettm/serverless-google-cloudfunctions",
     "serverless-openwhisk": "^0.4.4",
     "url-regex": "^4.0.0",
+    "uuid": "^3.0.1",
     "yamljs": "^0.2.8"
   },
   "devDependencies": {},
