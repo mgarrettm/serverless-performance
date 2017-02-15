@@ -119,7 +119,7 @@ function generateFunction(config, index) {
         handler: 'handler.test',
         events: [{
           http: {
-            path: '/',
+            path: '/test' + index,
             method: 'post',
             private: false
           }

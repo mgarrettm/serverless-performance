@@ -2,24 +2,18 @@
 
 const fs = require('fs');
 
-const stringify = require('csv-stringify');
 const request = require('request');
-const uuidV1 = require('uuid/v1');
 
 const providers = require('./providers');
 
 module.exports = function(config) {
-  let results = [["times"]];
-
-  for (let i = 0; i < config.test.timings.length; i++) {
-    results[i + 1] = [config.test.timings[i]];
-  }
-
-  for (let i = 0; i < config.test.iterations; i++) {
-    results[0][i + 1] = i;
-  }
+  let output = {
+    options: config,
+    results: []
+  };
 
   let remainingIterations = config.test.iterations;
+  let instanceIds = {};
 
   providers.prepareConcurrency(config, () => {
     let executeRound = (currentRound) => {
@@ -31,6 +25,7 @@ module.exports = function(config) {
         let remainingInRound = uris.length;
 
         for (let i = 0; i < uris.length; i++) {
+          output.results[i] = [];
           let remainingInIteration = config.test.timings.length;
 
           let delay = 3 * config.test.timings.length * config.test.concurrency;
@@ -38,12 +33,9 @@ module.exports = function(config) {
 
           for (let n = 0; n < config.test.timings.length; n++) {
             setTimeout(
-              (currentIteration, currentIterationId) => request.post({
+              (currentIteration) => request.post({
                 url: uris[i],
-                body: JSON.stringify({
-                  duration: config.function.duration,
-                  id: currentIterationId
-                }),
+                body: JSON.stringify({ duration: config.function.duration }),
                 time: true
               }, (err, res, body) => {
                 if (err) throw err;
@@ -52,31 +44,33 @@ module.exports = function(config) {
                 }
 
                 let parsedBody = JSON.parse(body);
-                if (parsedBody.id !== currentIterationId) {
-                  throw new Error('Function id mismatch in ' + currentIterationId + ': ' + parsedBody.id);
+                if (parsedBody.id in instanceIds && instanceIds[parsedBody.id] !== currentIteration) {
+                  throw new Error('Function id mismatch in ' + currentIteration + ': ' + parsedBody.id);
                 }
+                instanceIds[parsedBody.id] = currentIteration;
 
                 let overhead = res.elapsedTime - parsedBody.duration;
                 console.log(overhead + 'ms');
-                results[n + 1][currentIteration + 1] = overhead;
+
+                output.results[currentIteration][n] = {
+                  executionOverhead: overhead,
+                  functionDuration: parsedBody.duration,
+                  instanceId: parsedBody.id
+                };
 
                 if (--remainingInIteration == 0) {
                   console.log('Finished iteration ' + currentIteration);
 
                   if (--remainingIterations == 0) {
-                    stringify(results, (err, output) => {
-                      if (err) throw err;
-                      fs.writeFile(config.resultsFile, output);
-                      providers.cleanupDeployment(config);
-                    });
+                    fs.writeFile(config.resultsFile, JSON.stringify(output, null, 4));
+                    providers.cleanupDeployment(config);
                   } else if (--remainingInRound == 0) {
                     executeRound(currentRound + 1);
                   }
                 }
               }),
               start + config.test.timings[n] - Date.now(),
-              currentRound * config.test.concurrency + i,
-              uuidV1()
+              currentRound * config.test.concurrency + i
             );
           }
         }

@@ -40,15 +40,15 @@ program
     '-r, --rate <list>',
     'Describes the stages of the test; comma separated list of \'d@r\' pairs, where d is the duration of the stage in seconds, and r is the number of requests to execute per second; rate and backoff options are mutually exclusive',
     list => {
-      stages = parseStages(list, 'duration', 'rate');
-      config.test.timings = generateRateTimings(stages);
+      config.test.stages = parseStages(list, 'duration', 'rate');
+      config.test.timings = generateRateTimings(config.test.stages);
     })
   .option(
     '-b, --backoff <list>',
     'Describes the stages of the test; comma separated list of \'n@s\' pairs, where n is the number of times to backoff, and s is the additional step time to wait between requests; backoff and rate options are mutually exclusive',
     list => {
-      stages = parseStages(list, 'number', 'step');
-      config.test.timings = generateBackoffTimings(stages);
+      config.test.stages = parseStages(list, 'number', 'step');
+      config.test.timings = generateBackoffTimings(config.test.stages);
     })
   .option(
     '-i, --iterations <n>',
