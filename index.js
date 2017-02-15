@@ -54,6 +54,7 @@ module.exports = function(config) {
 
                 output.results[currentIteration][n] = {
                   executionOverhead: overhead,
+                  responseTime: res.elapsedTime,
                   functionDuration: parsedBody.duration,
                   instanceId: parsedBody.id
                 };
