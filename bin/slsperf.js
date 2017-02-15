@@ -99,9 +99,10 @@ function generateBackoffTimings(stages) {
   let timings = [];
   let stageStart = 0;
   stages.forEach(stage => {
-    let maximum = stage.number * stage.step;
+    let step = stage.step * 1000;
+    let maximum = stage.number * step;
     let time;
-    for (time = 0; time < maximum; time += stage.step) {
+    for (time = 0; time < maximum; time += step) {
       timings.push(time + stageStart);
     }
     stageStart = time;
