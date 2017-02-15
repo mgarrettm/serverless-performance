@@ -36,6 +36,7 @@ module.exports = function(config) {
               (currentIteration) => request.post({
                 url: uris[i],
                 body: JSON.stringify({ duration: config.function.duration }),
+                headers: { 'Content-Type': 'application/json' },
                 time: true
               }, (err, res, body) => {
                 if (err) throw err;
