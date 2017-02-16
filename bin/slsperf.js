@@ -90,7 +90,7 @@ function generateRateTimings(stages) {
       if (extra++ >= count) time++;
       timings.push(time + stageStart);
     }
-    stageStart = time;
+    stageStart += time;
   });
   return timings;
 }
