@@ -19,6 +19,11 @@ module.exports = {
     let functions = {};
 
     for (var i = 0; i < config.test.concurrency; i++) {
+      // Remove after AWS deploys fix to CloudLog
+      let functionName = 'test' + i;
+      if (config.provider.name == 'amazon') {
+        functionName += '-' + generateRandomLetters(6);
+      }
       functions['test' + i] = generateFunction(config, i);
     }
 
