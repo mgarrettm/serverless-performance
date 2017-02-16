@@ -25,15 +25,17 @@ module.exports = function(config) {
         let remainingInRound = uris.length;
 
         for (let i = 0; i < uris.length; i++) {
-          output.results[i] = [];
+          let currentIteration = currentRound * config.test.concurrency + i;
           let remainingInIteration = config.test.timings.length;
+
+          output.results[currentIteration] = [];
 
           let delay = 3 * config.test.timings.length * config.test.concurrency;
           let start = Date.now() + delay;
 
           for (let n = 0; n < config.test.timings.length; n++) {
             setTimeout(
-              (currentIteration) => request.post({
+              () => request.post({
                 url: uris[i],
                 body: JSON.stringify({ duration: config.function.duration }),
                 headers: { 'Content-Type': 'application/json' },
@@ -73,8 +75,7 @@ module.exports = function(config) {
                   }
                 }
               }),
-              start + config.test.timings[n] - Date.now(),
-              currentRound * config.test.concurrency + i
+              start + config.test.timings[n] - Date.now()
             );
           }
         }
