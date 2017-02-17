@@ -24,7 +24,7 @@ module.exports = {
       if (config.provider.name == 'amazon') {
         functionName += '-' + generateRandomLetters(6);
       }
-      functions['test' + i] = generateFunction(config, i);
+      functions[functionName] = generateFunction(config, i);
     }
 
     let ymlPath = path.join(__dirname, config.provider.name, 'serverless.yml');
