@@ -1,5 +1,6 @@
 // TODO: have you ever heard of classes? or promises?
 // TODO: better way to call serverless binary?
+// TODO: pass sls ignore warn into env vars
 
 'use strict';
 
