@@ -69,6 +69,8 @@ module.exports = function(config) {
                 if (--remainingInIteration == 0) {
                   console.log('Finished iteration ' + currentIteration);
 
+                  fs.writeFile('iteration' + currentIteration + '.json', JSON.stringify(output.results[currentIteration], null, 4));
+
                   if (--remainingIterations == 0) {
                     fs.writeFile(config.resultsFile, JSON.stringify(output, null, 4));
                     providers.cleanupDeployment(config);
