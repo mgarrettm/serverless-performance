@@ -7,38 +7,40 @@ const request = require('request');
 const providers = require('./providers');
 
 function run(config, verifyRemoval, callback) {
-  providers.removeFunctions(config.provider, removeCode => {
-    if (verifyRemoval && removeCode != 0) {
-      throw new Error('Function removal failed with code ' + removeCode);
-    }
-
-    providers.deployFunctions(config.provider, (deployCode, uri) => {
-      if (deployCode != 0) {
-        throw new Error('Function deployment failed with code ' + deployCode);
+  providers.prepareFunctions(config.provider, () => {
+    providers.removeFunctions(config.provider, removeCode => {
+      if (verifyRemoval && removeCode != 0) {
+        throw new Error('Function removal failed with code ' + removeCode);
       }
 
-      switch (config.test.type) {
-        case 'latency':
-          executeLatencyTest(
-            [],
-            config.test.delay,
-            config.test.delayIncrease,
-            config.test.maxDelay,
-            config.function.duration,
-            uri,
-            callback);
-          break;
-        case 'throughput':
-          executeThroughputTest(
-            [],
-            1,
-            config.test.width,
-            config.test.duration,
-            config.function.duration,
-            uri,
-            callback);
-          break;
-      }
+      providers.deployFunctions(config.provider, (deployCode, uri) => {
+        if (deployCode != 0) {
+          throw new Error('Function deployment failed with code ' + deployCode);
+        }
+
+        switch (config.test.type) {
+          case 'latency':
+            executeLatencyTest(
+              [],
+              config.test.delay,
+              config.test.delayIncrease,
+              config.test.maxDelay,
+              config.function.duration,
+              uri,
+              callback);
+            break;
+          case 'throughput':
+            executeThroughputTest(
+              [],
+              1,
+              config.test.width,
+              config.test.duration,
+              config.function.duration,
+              uri,
+              callback);
+            break;
+        }
+      });
     });
   });
 }
