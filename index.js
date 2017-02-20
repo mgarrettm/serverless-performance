@@ -65,6 +65,8 @@ function executeThroughputTest(results, currentWidth, maxWidth, testDuration, fu
     callback(results);
     return;
   }
+  console.log(`Execution throughput test with width: ${currentWidth}`);
+  results[currentWidth] = results[currentWidth] || [];
 
   let startTime = null;
   let stageCompleted = false;
@@ -75,7 +77,7 @@ function executeThroughputTest(results, currentWidth, maxWidth, testDuration, fu
         startTime = Date.now();
       }
 
-      results.push(result);
+      results[currentWidth].push(result);
 
       if (Date.now() - startTime > testDuration) {
         if (!stageCompleted) {

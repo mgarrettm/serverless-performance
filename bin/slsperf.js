@@ -19,13 +19,13 @@ let latencyTest = {
   type: 'latency',
   delay: 60000,
   delayIncrease: 60000,
-  maxDelay: 600000
+  maxDelay: 1800000
 };
 
 let throughputTest = {
   type: 'throughput',
-  width: 1,
-  duration: 10000
+  width: 30,
+  duration: 10000,
 };
 
 program
@@ -65,6 +65,8 @@ config.resultsDir = program.args[0];
 if (!fs.existsSync(config.resultsDir)) {
   fs.mkdirSync(config.resultsDir);
 }
+
+fs.writeFileSync(path.join(config.resultsDir, `${config.provider.name}_${config.test.type}_config.json`))
 
 let iteration = 0;
 fs.readdirSync(config.resultsDir).forEach(file => {
