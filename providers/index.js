@@ -144,7 +144,7 @@ function generateFunctions(provider) {
 function extractUri(provider, uris) {
   switch (provider.name) {
     case 'microsoft':
-      return 'http://' + provider.service + '.azurewebsites.net/api';
+      return 'http://' + provider.service + '.azurewebsites.net/api/test';
     default:
       return uris[0];
   }
