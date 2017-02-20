@@ -6,85 +6,142 @@ const request = require('request');
 
 const providers = require('./providers');
 
-module.exports = function(config) {
+function run(config, callback) {
   let output = {
     options: config,
     results: []
   };
 
-  let remainingIterations = config.test.iterations;
-  let instanceIds = {};
-
-  providers.prepareConcurrency(config, () => {
-    let executeRound = (currentRound) => {
-      providers.deploy(config, (uris) => {
-        if (uris.length > remainingIterations) {
-          uris = uris.slice(0, remainingIterations);
-        }
-
-        let remainingInRound = uris.length;
-
-        for (let i = 0; i < uris.length; i++) {
-          let currentIteration = currentRound * config.test.concurrency + i;
-          let remainingInIteration = config.test.timings.length;
-
-          output.results[currentIteration] = [];
-
-          let delay = 3 * config.test.timings.length * config.test.concurrency;
-          let start = Date.now() + delay;
-
-          for (let n = 0; n < config.test.timings.length; n++) {
-            setTimeout(
-              () => request.post({
-                url: uris[i],
-                body: JSON.stringify({ duration: config.function.duration }),
-                headers: { 'Content-Type': 'application/json' },
-                time: true
-              }, (err, res, body) => {
-                if (err) throw err;
-                if (res.statusCode != 200) {
-                  console.log('Unexpected response. Status code: ' + res.statusCode + '. Body: ' + body);
-                  remainingIterations++;
-                  return;
-                }
-
-                let parsedBody = JSON.parse(body);
-                if (parsedBody.id in instanceIds && instanceIds[parsedBody.id] !== currentIteration) {
-                  throw new Error('Function id mismatch in ' + currentIteration + ': ' + parsedBody.id);
-                }
-                instanceIds[parsedBody.id] = currentIteration;
-
-                let overhead = res.elapsedTime - parsedBody.duration;
-                console.log(overhead + 'ms');
-
-                output.results[currentIteration][n] = {
-                  executionOverhead: overhead,
-                  intendedRequestStart: config.test.timings[n],
-                  requestStart: res.request.startTime - start,
-                  requestDuration: res.elapsedTime,
-                  functionDuration: parsedBody.duration,
-                  instanceId: parsedBody.id
-                };
-
-                if (--remainingInIteration == 0) {
-                  console.log('Finished iteration ' + currentIteration);
-
-                  fs.writeFile('iteration' + currentIteration + '.json', JSON.stringify(output.results[currentIteration], null, 4));
-
-                  if (--remainingIterations == 0) {
-                    fs.writeFile(config.resultsFile, JSON.stringify(output, null, 4));
-                    providers.cleanupDeployment(config);
-                  } else if (--remainingInRound == 0) {
-                    executeRound(currentRound + 1);
-                  }
-                }
-              }),
-              start + config.test.timings[n] - Date.now()
-            );
-          }
-        }
-      });
-    };
-    executeRound(0);
+  providers.prepareFunctions(config.provider, () => {
+    runIteration(config, false, function iterationCallback(iteration) {
+      output.results.push([iteration]);
+      if (output.results.length == config.test.iterations) {
+        providers.removeFunctions(config, code => callback(output));
+      } else {
+        runIteration(config, true, iterationCallback);
+      }
+    });
   });
 }
+
+function runIteration(config, verifyRemoval, callback) {
+  providers.removeFunctions(config.provider, removeCode => {
+    if (verifyRemoval && removeCode != 0) {
+      throw new Error('Function removal failed with code ' + removeCode);
+    }
+
+    providers.deployFunctions(config.provider, (deployCode, uri) => {
+      if (deployCode != 0) {
+        throw new Error('Function deployment failed with code ' + deployCode);
+      }
+
+      switch (config.test.type) {
+        case 'latency':
+          executeLatencyTest(
+            [],
+            config.test.delay,
+            config.test.delayIncrease,
+            config.test.maxDelay,
+            config.function.duration,
+            uri,
+            callback);
+          break;
+        case 'throughput':
+          executeThroughputTest(
+            [],
+            1,
+            config.test.width,
+            config.test.duration,
+            config.function.duration,
+            uri,
+            callback);
+          break;
+      }
+    });
+  });
+}
+
+function executeLatencyTest(results, delay, delayIncrease, maxDelay, functionDuration, uri, callback) {
+  if (delay > maxDelay) {
+    callback(results);
+    return;
+  }
+
+  executeFunction(uri, functionDuration, result => {
+    results.delay = delay;
+    results.push(result);
+
+    setTimeout(
+      executeLatencyTest,
+      delay,
+      results, delay + delayIncrease, delayIncrease, maxDelay, uri, functionDuration, callback);
+  });
+}
+
+function executeThroughputTest(results, currentWidth, maxWidth, testDuration, functionDuration, uri, callback) {
+  if (currentWidth > maxWidth) {
+    callback(results);
+    return;
+  }
+
+  let startTime = null;
+  let stageCompleted = false;
+
+  for (let i = 0; i < currentWidth; i++) {
+    executeFunction(uri, functionDuration, function processResult(result) {
+      if (startTime == null) {
+        startTime = Date.now();
+      }
+
+      results.push(result);
+
+      if (Date.now() - startTime > testDuration) {
+        if (!stageCompleted) {
+          stageCompleted = true;
+
+          executeThroughputTest(
+            results,
+            currentWidth + 1,
+            maxWidth,
+            testDuration,
+            functionDuration,
+            uri,
+            callback);
+        }
+      } else {
+        executeFunction(uri, functionDuration, processResult);
+      }
+    });
+  }
+}
+
+function executeFunction(uri, duration, callback) {
+  request.post({
+    url: uri,
+    body: JSON.stringify({ duration: duration }),
+    headers: { 'Content-Type': 'application/json' },
+    time: true
+  }, (err, res, body) => {
+    if (err) throw err;
+    if (res.statusCode != 200) {
+      throw new Error('Unexpected response. Status code: ' + res.statusCode + '. Body: ' + body);
+    }
+
+    let parsedBody = JSON.parse(body);
+    let overhead = res.elapsedTime - parsedBody.duration;
+
+    console.log(overhead + 'ms');
+
+    callback({
+      executionOverhead: overhead,
+      requestStart: res.request.startTime,
+      requestDuration: res.elapsedTime,
+      functionDuration: parsedBody.duration,
+      instanceId: parsedBody.id
+    });
+  });
+}
+
+module.exports = {
+  run: run
+};

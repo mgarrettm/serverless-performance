@@ -1,0 +1,10 @@
+service: prototype
+provider:
+    name: prototype
+    location: 'East US'
+plugins:
+    - serverless-prototype-plugin
+package:
+    exclude: ['node_modules/**', .gitignore, package.json, '.git/**']
+functions:
+    test0: {handler: index.js, memorySize: 512}

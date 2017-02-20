@@ -6,4 +6,4 @@ provider:
     region: us-east-1
     memorySize: 512
 functions:
-    test0: {handler: handler.test, events: [{http: {path: /test0, method: post, private: false}}]}
+    test-zwuryn: {handler: handler.test, events: [{http: {path: /test, method: post, private: false}}]}

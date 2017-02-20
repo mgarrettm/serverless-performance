@@ -1,6 +1,5 @@
-// TODO: have you ever heard of classes? or promises?
-// TODO: better way to call serverless binary?
-// TODO: pass sls ignore warn into env vars
+// TODO: have you ever heard of promises?
+// TODO: better way to call serverless? not exec?
 
 'use strict';
 
@@ -13,134 +12,121 @@ const YAML = require('yamljs');
 
 const serverlessPath = path.join(require.resolve('serverless'), '../../bin/serverless');
 
-let service = '';
+let env = Object.create(process.env);
+env.SLS_IGNORE_WARNING = '*';
+env.SLS_DEBUG = '*';
 
-module.exports = {
-  prepareConcurrency: (config, callback) => {
-    let functions = {};
+function prepareFunctions(provider, callback) {
+  let ymlPath = path.join(__dirname, provider.name, 'serverless.yml');
+  
+  YAML.load(ymlPath, yml => {
+    yml = modifyYAML(provider, yml);
 
-    for (var i = 0; i < config.test.concurrency; i++) {
-      // Remove after AWS deploys fix to CloudLog
-      let functionName = 'test' + i;
-      if (config.provider.name == 'amazon') {
-        functionName += '-' + generateRandomLetters(6);
-      }
-      functions[functionName] = generateFunction(config, i);
+    let ymlString = YAML.stringify(yml, null, 4);
+
+    fs.writeFile(ymlPath, ymlString, err => {
+      if (err) throw err;
+      callback();
+    });
+  });
+}
+
+function deployFunctions(provider, callback) {
+  let deploymentPath = path.join(__dirname, provider.name);
+
+  let child = exec('cd ' + deploymentPath + '&& node ' + serverlessPath + ' deploy', { env: env });
+
+  let stdout = '';
+  child.stdout.on('data', data => {
+    stdout += data;
+    process.stdout.write(data);
+  });
+
+  child.stderr.on('data', data => process.stderr.write(data));
+
+  child.on('close', code => {
+    let uri = [];
+    if (code == 0) {
+      uri = extractUri(provider, stdout.match(urlRegex()));
     }
 
-    let ymlPath = path.join(__dirname, config.provider.name, 'serverless.yml');
-    
-    YAML.load(ymlPath, yml => {
-      yml.functions = functions;
-      yml = prepareYAML(config, yml);
+    callback(code, uri);
+  });
+}
 
-      let ymlString = YAML.stringify(yml, null, 4);
+function removeFunctions(provider, callback) {
+  let deploymentPath = path.join(__dirname, provider.name);
 
-      fs.writeFile(ymlPath, ymlString, err => {
-        if (err) throw err;
-        callback();
-      });
-    });
-  },
-  deploy: (config, callback) => {
-    console.log('Beginning deployment to ' + config.provider.name);
+  let child = exec('cd ' + deploymentPath + '&& node ' + serverlessPath + ' remove', { env: env });
 
-    let deploymentPath = path.join(__dirname, config.provider.name);
-    let remove = exec('cd ' + deploymentPath + '&& node ' + serverlessPath + ' remove');
+  child.stdout.on('data', data => process.stdout.write(data));
+  child.stderr.on('data', data => process.stderr.write(data));
 
-    remove.stdout.on('data', data => process.stdout.write(data));
+  child.on('close', code => {
+    callback(code);
+  })
+}
 
-    remove.on('close', code => {
-      let deploy = exec('cd ' + deploymentPath + '&& node ' + serverlessPath + ' deploy');
-
-      let stdout = '';
-      deploy.stdout.on('data', data => {
-        stdout += data;
-        process.stdout.write(data);
-      });
-
-      deploy.stderr.on('data', data => process.stderr.write(data));
-
-      deploy.on('close', code => {
-        if (code != 0) {
-          throw new Error('Provider deployment exited with failure code: ' + code);
-        }
-
-        let uris = extractUris(config, stdout.match(urlRegex()));
-
-        console.log('Finished deployment to ' + config.provider.name);
-
-        callback(uris);
-      });
-    });
-  },
-  cleanupDeployment: (config) => {
-    console.log('Beginning ' + config.provider.name + ' deployment cleanup');
-
-    let deploymentPath = path.join(__dirname, config.provider.name);
-    let child = exec('cd ' + deploymentPath + '&& node ' + serverlessPath + ' remove');
-
-    child.stdout.on('data', data => process.stdout.write(data));
-
-    child.stderr.on('data', data => process.stderr.write(data));
-
-    child.on('close', code => {
-      if (code != 0) {
-        throw new Error('Provider deployment cleanup exited with failure code: ' + code);
-      }
-
-      console.log('Finished ' + config.provider.name + ' deployment cleanup');
-    });
-  }
-};
-
-function prepareYAML(config, yml) {
-  switch(config.provider.name) {
+function modifyYAML(provider, yml) {
+  switch(provider.name) {
     case 'alphabet':
-      config.provider.project = config.provider.project || generateRandomLetters(12);
-      yml.provider.project = config.provider.project;
-      config.provider.credentials = config.provider.credentials || '~/.gcloud/keyfile.json';
-      yml.provider.credentials = config.provider.credentials;
+      provider.project = provider.project || generateRandomLetters(12);
+      yml.provider.project = provider.project;
+      provider.credentials = provider.credentials || '~/.gcloud/keyfile.json';
+      yml.provider.credentials = provider.credentials;
       break;
     case 'microsoft':
-      config.provider.service = config.provider.service || generateRandomLetters(12);
-      yml.service = config.provider.service;
+      provider.service = provider.service || generateRandomLetters(12);
+      yml.service = provider.service;
       break;
   }
+
+  yml.functions = generateFunctions(provider);
+
   return yml;
 }
 
-function generateFunction(config, index) {
-  switch(config.provider.name) {
+function generateFunctions(provider) {
+  let functions = {};
+  
+  let functionName = 'test';
+  if (provider.name == 'amazon') {
+    functionName += '-' + generateRandomLetters(6);
+  }
+
+  switch(provider.name) {
     case 'alphabet':
-      return {
+      functions[functionName] = {
         handler: 'test',
         availableMemoryMb: 512,
         events: [{
           http: true 
         }]
       };
+      break;
     case 'amazon':
-      return {
+      functions[functionName] = {
         handler: 'handler.test',
         events: [{
           http: {
-            path: '/test' + index,
+            path: '/test',
             method: 'post',
             private: false
           }
         }]
       };
+      break;
     case 'ibm':
-      return {
+      functions[functionName] = {
         handler: 'handler.test',
         memory: 512,
         events: [{
-          http: 'POST test' + index
+          http: 'POST test'
         }]
       };
+      break;
     case 'microsoft':
-      return {
+      functions[functionName] = {
         handler: 'handler.test',
         events: [{
           http: true,
@@ -149,20 +135,18 @@ function generateFunction(config, index) {
           }
         }]
       };
+      break;
   }
+
+  return functions;
 }
 
-function extractUris(config, uris) {
-  switch (config.provider.name) {
+function extractUri(provider, uris) {
+  switch (provider.name) {
     case 'microsoft':
-      uris = [];
-      let uri = 'http://' + config.provider.service + '.azurewebsites.net/api';
-      for (let i = 0; i < config.test.concurrency; i++) {
-        uris[i] = uri + '/test' + i;
-      }
-      return uris;
+      return 'http://' + provider.service + '.azurewebsites.net/api';
     default:
-      return uris;
+      return uris[0];
   }
 }
 
@@ -175,3 +159,9 @@ function generateRandomLetters(length)
     }
     return text;
 }
+
+module.exports = {
+  prepareFunctions: prepareFunctions,
+  deployFunctions: deployFunctions,
+  removeFunctions: removeFunctions
+};
