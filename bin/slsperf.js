@@ -24,7 +24,7 @@ let latencyTest = {
 
 let throughputTest = {
   type: 'throughput',
-  width: 30,
+  width: 15,
   duration: 10000,
 };
 
