@@ -6,25 +6,7 @@ const request = require('request');
 
 const providers = require('./providers');
 
-function run(config, callback) {
-  let output = {
-    options: config,
-    results: []
-  };
-
-  providers.prepareFunctions(config.provider, () => {
-    runIteration(config, false, function iterationCallback(iteration) {
-      output.results.push([iteration]);
-      if (output.results.length == config.test.iterations) {
-        providers.removeFunctions(config, code => callback(output));
-      } else {
-        runIteration(config, true, iterationCallback);
-      }
-    });
-  });
-}
-
-function runIteration(config, verifyRemoval, callback) {
+function run(config, verifyRemoval, callback) {
   providers.removeFunctions(config.provider, removeCode => {
     if (verifyRemoval && removeCode != 0) {
       throw new Error('Function removal failed with code ' + removeCode);

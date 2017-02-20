@@ -29,7 +29,7 @@ let throughputTest = {
 };
 
 program
-  .usage('[options] <resultsFile>')
+  .usage('[options] <resultsDir>')
   .option(
     '-p, --provider <name>',
     'Serverless platform to target (amazon, ibm, microsoft, google)',
@@ -60,9 +60,35 @@ program
     n => config.test.iterations = parseInt(n))
   .parse(process.argv);
 
-if (program.args.length > 0) {
-  config.resultsFile = program.args[0];
-  slsperf.run(config, output => {
-    fs.writeFile(config.resultsFile, JSON.stringify(output, null, 4));
+config.resultsDir = program.args[0];
+
+if (!fs.existsSync(config.resultsDir)) {
+  fs.mkdirSync(config.resultsDir);
+}
+
+let iteration = 0;
+fs.readdirSync(config.resultsDir).forEach(file => {
+  if (file.match(/[a-z]+_[a-z]+_[0-9]+\.json/) != null) {
+    let left = file.split('.')[0].split('_');
+    if (left[0] == config.provider.name && left[1] == config.test.type) {
+      let iterationFound = parseInt(left[2]);
+      if (iterationFound >= iteration) {
+        console.log(`Iteration ${iterationFound} already complete`);
+        iteration = iterationFound + 1;
+      }
+    }
+  }
+});
+
+if (iteration < config.test.iterations) {
+  console.log(`Starting iteration ${iteration}`);
+  slsperf.run(config, false, function processOutput(output) {
+    let outputFile = path.join(config.resultsDir, `${config.provider.name}_${config.test.type}_${iteration}.json`);
+    fs.writeFileSync(outputFile, JSON.stringify(output, null, 4));
+    console.log(`Finished iteration ${iteration}`);
+    if (++iteration < config.test.iterations) {
+      console.log(`Starting iteration ${iteration}`);
+      slsperf.run(config, true, processOutput);
+    }
   });
 }
