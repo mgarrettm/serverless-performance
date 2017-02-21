@@ -66,7 +66,7 @@ if (!fs.existsSync(config.resultsDir)) {
   fs.mkdirSync(config.resultsDir);
 }
 
-fs.writeFileSync(path.join(config.resultsDir, `${config.provider.name}_${config.test.type}_config.json`))
+fs.writeFileSync(path.join(config.resultsDir, `${config.provider.name}_${config.test.type}_config.json`), config);
 
 let iteration = 0;
 fs.readdirSync(config.resultsDir).forEach(file => {
