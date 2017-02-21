@@ -136,6 +136,12 @@ function generateFunctions(provider) {
         }]
       };
       break;
+    case 'prototype':
+      functions[functionName] = {
+        handler: 'index.js',
+        memorySize: 512
+      };
+      break;
   }
 
   return functions;
