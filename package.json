@@ -6,7 +6,7 @@
   "dependencies": {
     "request": "^2.79.0",
     "serverless": "git+https://github.com/mgarrettm/serverless",
-    "serverless-azure-functions": "git+https://github.com/serverless/serverless-azure-functions.git#2ca732a051eda014c52caeb974be05169d639cd2",
+    "serverless-azure-functions": "git+https://github.com/serverless/serverless-azure-functions",
     "serverless-google-cloudfunctions": "git+https://github.com/mgarrettm/serverless-google-cloudfunctions",
     "serverless-openwhisk": "^0.4.4",
     "serverless-prototype-plugin": "0.0.14",
