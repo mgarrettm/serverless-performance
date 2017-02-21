@@ -58,7 +58,7 @@ function executeLatencyTest(results, delay, delayIncrease, maxDelay, functionDur
     setTimeout(
       executeLatencyTest,
       delay,
-      results, delay + delayIncrease, delayIncrease, maxDelay, uri, functionDuration, callback);
+      results, delay + delayIncrease, delayIncrease, maxDelay, functionDuration, uri, callback);
   });
 }
 
