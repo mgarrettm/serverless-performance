@@ -9,7 +9,7 @@
     "serverless-azure-functions": "git+https://github.com/serverless/serverless-azure-functions",
     "serverless-google-cloudfunctions": "git+https://github.com/mgarrettm/serverless-google-cloudfunctions",
     "serverless-openwhisk": "^0.4.4",
-    "serverless-prototype-plugin": "0.0.15",
+    "serverless-prototype-plugin": "0.0.16",
     "url-regex": "^4.0.0",
     "yamljs": "^0.2.8"
   },
