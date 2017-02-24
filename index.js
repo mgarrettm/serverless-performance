@@ -114,7 +114,10 @@ function executeFunction(uri, duration, callback) {
     }
 
     let parsedBody = JSON.parse(body);
-    let overhead = res.elapsedTime - parsedBody.duration;
+    let actualDuration = parsedBody.duration || parsedBody.output.duration;
+    let instanceId = parsedBody.id || parsedBody.output.id;
+    
+    let overhead = res.elapsedTime - actualDuration;
 
     console.log(overhead + 'ms');
 
@@ -122,8 +125,9 @@ function executeFunction(uri, duration, callback) {
       executionOverhead: overhead,
       requestStart: res.request.startTime,
       requestDuration: res.elapsedTime,
-      functionDuration: parsedBody.duration,
-      instanceId: parsedBody.id
+      functionDuration: actualDuration,
+      instanceId: instanceId,
+      body: parsedBody
     });
   });
 }
