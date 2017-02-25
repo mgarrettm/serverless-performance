@@ -23,7 +23,7 @@ function run(config, verifyRemoval, callback) {
             executeLatencyTest(
               [],
               config.test.delay,
-              config.test.delayIncrease,
+              config.test.delayCallback,
               config.test.maxDelay,
               config.function.duration,
               uri,
@@ -45,7 +45,7 @@ function run(config, verifyRemoval, callback) {
   });
 }
 
-function executeLatencyTest(results, delay, delayIncrease, maxDelay, functionDuration, uri, callback) {
+function executeLatencyTest(results, delay, delayCallback, maxDelay, functionDuration, uri, callback) {
   if (delay > maxDelay) {
     callback(results);
     return;
@@ -58,7 +58,7 @@ function executeLatencyTest(results, delay, delayIncrease, maxDelay, functionDur
     setTimeout(
       executeLatencyTest,
       delay,
-      results, delay + delayIncrease(results.length), delayIncrease, maxDelay, functionDuration, uri, callback);
+      results, delayCallback(results.length), delayIncrease, maxDelay, functionDuration, uri, callback);
   });
 }
 
