@@ -58,7 +58,7 @@ function executeLatencyTest(results, delay, delayIncrease, maxDelay, functionDur
     setTimeout(
       executeLatencyTest,
       delay,
-      results, delay + delayIncrease, delayIncrease, maxDelay, functionDuration, uri, callback);
+      results, delay + delayIncrease(results.length), delayIncrease, maxDelay, functionDuration, uri, callback);
   });
 }
 
@@ -114,9 +114,10 @@ function executeFunction(uri, duration, callback) {
     }
 
     let parsedBody = JSON.parse(body);
-    let actualDuration = parsedBody.duration || parsedBody.output.duration;
+
+    let actualDuration = parsedBody.duration != undefined ? parsedBody.duration : parsedBody.output.duration;
     let instanceId = parsedBody.id || parsedBody.output.id;
-    
+
     let overhead = res.elapsedTime - actualDuration;
 
     console.log(overhead + 'ms');

@@ -18,7 +18,7 @@ let config = {
 let latencyTest = {
   type: 'latency',
   delay: 60000,
-  delayIncrease: 60000,
+  delayIncrease: i => 60000 * (Math.floor(i / 5) + 1),
   maxDelay: 1800000
 };
 
@@ -32,7 +32,7 @@ program
   .usage('[options] <resultsDir>')
   .option(
     '-p, --provider <name>',
-    'Serverless platform to target (amazon, ibm, microsoft, google)',
+    'Serverless platform to target (amazon, ibm, microsoft, google, prototype)',
     name => config.provider.name = name)
   .option(
     '--project <name>',

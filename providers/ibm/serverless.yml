@@ -2,6 +2,6 @@ service: ibm
 provider:
     name: openwhisk
 functions:
-    test0: {handler: handler.test, memory: 512, events: [{http: 'POST test0'}]}
+    test: {handler: handler.test, memory: 512, events: [{http: 'POST test'}]}
 plugins:
     - serverless-openwhisk
