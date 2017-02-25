@@ -22,7 +22,7 @@ function run(config, verifyRemoval, callback) {
           case 'latency':
             executeLatencyTest(
               [],
-              config.test.delay,
+              0,
               config.test.delayCallback,
               config.test.maxDelay,
               config.function.duration,
@@ -58,7 +58,7 @@ function executeLatencyTest(results, delay, delayCallback, maxDelay, functionDur
     setTimeout(
       executeLatencyTest,
       delay,
-      results, delayCallback(results.length), delayCallback, maxDelay, functionDuration, uri, callback);
+      results, delay + delayCallback(results.length), delayCallback, maxDelay, functionDuration, uri, callback);
   });
 }
 

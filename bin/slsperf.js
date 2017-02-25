@@ -17,7 +17,6 @@ let config = {
 
 let latencyTest = {
   type: 'latency',
-  delay: 60000,
   delayCallback: i => 60000 * (Math.floor(i / 5) + 1),
   maxDelay: 1800000
 };
@@ -26,6 +25,12 @@ let throughputTest = {
   type: 'throughput',
   width: 15,
   duration: 10000,
+};
+
+let keepAliveTest = {
+  type: 'latency',
+  delayCallback: i => i ? 0 : 100,
+  maxDelay: 101
 };
 
 program
@@ -54,6 +59,10 @@ program
     '-t, --throughput',
     'Runs a throughput test on the specified provider',
     () => config.test = throughputTest)
+  .option(
+    '-k, --keep-alive',
+    'Runs a keep-alive test on the specified provider',
+    () => config.test = keepAliveTest)
   .option(
     '-i, --iterations <n>',
     'Number of times to run the test',
