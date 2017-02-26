@@ -17,7 +17,7 @@ let config = {
 
 let latencyTest = {
   type: 'latency',
-  delayCallback: i => 60000 * (Math.floor(i / 5) + 1),
+  delayCallback: i => 60000 * (Math.floor((i - 1) / 5) + 1),
   maxDelay: 3600000
 };
 
