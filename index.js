@@ -55,10 +55,13 @@ function executeLatencyTest(results, delay, delayCallback, maxDelay, functionDur
     results.delay = delay;
     results.push(result);
 
+    let nextDelay = delay + delayCallback(results.length);
+    console.log(`Delaying for ${nextDelay}ms`);
+
     setTimeout(
       executeLatencyTest,
       delay,
-      results, delay + delayCallback(results.length), delayCallback, maxDelay, functionDuration, uri, callback);
+      results, nextDelay, delayCallback, maxDelay, functionDuration, uri, callback);
   });
 }
 
@@ -120,7 +123,7 @@ function executeFunction(uri, duration, callback) {
 
     let overhead = res.elapsedTime - actualDuration;
 
-    console.log(overhead + 'ms');
+    console.log(`Execution latency of ${overhead}ms`);
 
     callback({
       executionOverhead: overhead,
