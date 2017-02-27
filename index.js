@@ -46,14 +46,14 @@ function run(config, verifyRemoval, callback) {
 }
 
 function executeLatencyTest(results, delay, delayCallback, maxDelay, functionDuration, uri, callback) {
-  if (delay > maxDelay) {
-    callback(results);
-    return;
-  }
-
   executeFunction(uri, functionDuration, result => {
     results.delay = delay;
     results.push(result);
+
+    if (delay >= maxDelay) {
+      callback(results);
+      return;
+    }
 
     let nextDelay = delay + delayCallback(results.length);
     console.log(`Delaying for ${nextDelay}ms`);
