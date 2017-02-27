@@ -60,7 +60,7 @@ function executeLatencyTest(results, delay, delayCallback, maxDelay, functionDur
 
     setTimeout(
       executeLatencyTest,
-      delay,
+      nextDelay,
       results, nextDelay, delayCallback, maxDelay, functionDuration, uri, callback);
   });
 }
