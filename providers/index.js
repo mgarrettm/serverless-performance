@@ -100,7 +100,7 @@ function generateFunctions(provider) {
         handler: 'test',
         availableMemoryMb: 512,
         events: [{
-          http: true 
+          http: '/' 
         }]
       };
       break;

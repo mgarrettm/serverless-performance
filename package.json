@@ -7,7 +7,7 @@
     "request": "^2.79.0",
     "serverless": "git+https://github.com/mgarrettm/serverless",
     "serverless-azure-functions": "git+https://github.com/serverless/serverless-azure-functions",
-    "serverless-google-cloudfunctions": "git+https://github.com/mgarrettm/serverless-google-cloudfunctions",
+    "serverless-google-cloudfunctions": "git+https://github.com/serverless/serverless-google-cloudfunctions.git",
     "serverless-openwhisk": "^0.4.4",
     "serverless-prototype-plugin": "0.0.20",
     "url-regex": "^4.0.0",
