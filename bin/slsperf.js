@@ -38,7 +38,7 @@ program
   .option(
     '-p, --provider <name>',
     'Serverless platform to target (amazon, ibm, microsoft, google, prototype)',
-    name => config.provider.name = name)
+    name => config.provider.name = name == 'google' ? 'alphabet' : name)
   .option(
     '--project <name>',
     'Name of the project to deploy Google Cloud Functions to',
