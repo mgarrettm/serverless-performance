@@ -56,10 +56,14 @@ Examples:
 
 The concurrency test is designed to measure the ability of serverless platforms to performantly scale and execute a function. The tool maintains invocation calls to the test function by reissuing each request immediately after receiving the response from the previous call. The test begins by maintaining a single invocation call in this way, and every 10 seconds adds an additional concurrent call, up to a maximum of 15 concurrent requests to the test function.
 
-![Concurrency Test Results](https://mgarrettm.blob.core.windows.net/research/throughput.png)
+<p align="center">
+  <img align="center" src="https://mgarrettm.blob.core.windows.net/research/throughput.png" alt="Concurrency Test Results" />
+</p>
 
 ### Backoff Test
 
 The backoff test is designed to study the cold start times and expiration behaviors of function instances in the various platforms. The backoff test sends single invocation call to the test function at increasing intervals, ranging from one to thirty minutes.
 
-![Backoff Test Results](https://mgarrettm.blob.core.windows.net/research/latency.png)
+<p align="center">
+  <img align="center" src="https://mgarrettm.blob.core.windows.net/research/latency.png" alt="Backoff Test Results" />
+</p>
