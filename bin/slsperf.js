@@ -34,7 +34,7 @@ let keepAliveTest = {
 };
 
 program
-  .usage('[options] <resultsDir>')
+  .usage('[options] <resultsDirectory>')
   .option(
     '-p, --provider <name>',
     'Serverless platform to target (amazon, ibm, microsoft, google, prototype)',
@@ -52,12 +52,12 @@ program
     'Number of milliseconds the function should execute before returning',
     ms => config.function.duration = parseInt(ms))
   .option(
-    '-l, --latency',
-    'Runs a latency test on the specified provider',
+    '-b, --backoff',
+    'Runs a backoff test on the specified provider',
     () => config.test = latencyTest)
   .option(
-    '-t, --throughput',
-    'Runs a throughput test on the specified provider',
+    '-c, --concurrency',
+    'Runs a concurrency test on the specified provider',
     () => config.test = throughputTest)
   .option(
     '-k, --keep-alive',

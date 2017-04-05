@@ -24,13 +24,14 @@ You must configure credentials before using any of the supported platforms:
 * **IBM OpenWhisk** can be configured by following this <a href='https://serverless.com/framework/docs/providers/openwhisk/guide/credentials/'>guide</a> on the Serverless Framework website.
 * **Azure Functions** can be configured by following this <a href='https://serverless.com/framework/docs/providers/azure/guide/credentials/'>guide</a> on the Serverless Framework website.
 * **Google Cloud Functions** can be configured by creating a `keyfile.json` file as described <a href='https://github.com/serverless/serverless-google-cloudfunctions'>here</a>.
+* **Prototype Platform** also compatible with a new <a href='https://github.com/mgarrettm/serverless-prototype'>prototype platform</a> using a `prototypeServiceBaseUri` environment variable.
 
 ### Command Line Interface
 
 A command line tool for this package is available at `bin/slsperf.js`:
 
 ```
-Usage: slsperf [options] <resultsFile>
+Usage: slsperf [options] <resultsDirectory>
 
 Options:
 
@@ -39,12 +40,26 @@ Options:
     --project <name>       Name of the project to deploy Google Cloud Functions to
     --credentials <path>   Path of the file holding Google Cloud credentials
     -d, --duration <ms>    Number of milliseconds the function should execute before returning
-    -l, --latency          Runs a latency test on the specified provider
-    -t, --throughput       Runs a throughput test on the specified provider
-    -k, --keep-alive       Runs a keep-alive test on the specified provider
+    -b, --backoff          Runs a backoff test on the specified provider
+    -c, --concurrency      Runs a concurrency test on the specified provider
+    -k, --keep-alive       Maintains an invocation call to the specified provider
     -i, --iterations <n>   Number of times to run the test
 
 Examples:
 
-    node slsperf.js -p amazon -d 0 -t -i 1 .
+    node slsperf.js -p amazon -d 0 -c -i 1 .
 ```
+
+## Example Results
+
+### Concurrency (Throughput) Test
+
+The concurrency test is designed to measure the ability of serverless platforms to performantly scale and execute a function. The tool maintains invocation calls to the test function by reissuing each request immediately after receiving the response from the previous call. The test begins by maintaining a single invocation call in this way, and every 10 seconds adds an additional concurrent call, up to a maximum of 15 concurrent requests to the test function.
+
+![Concurrency Test Results](https://mgarrettm.blob.core.windows.net/research/throughput.png)
+
+### Backoff (Latency) Test
+
+The backoff test is designed to study the cold start times and expiration behaviors of function instances in the various platforms. The backoff test sends single invocation call to the test function at increasing intervals, ranging from one to thirty minutes.
+
+![Backoff Test Results](https://mgarrettm.blob.core.windows.net/research/latency.png)
